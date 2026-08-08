@@ -1,6 +1,9 @@
 import { createReadStream, statSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import type { ReadStream } from 'node:fs';
+import {
+    FileServiceError
+} from '../types/file.types.js';
 
 export interface FileMetadata {
     stream: ReadStream;
@@ -20,16 +23,16 @@ export class FileService {
         const fullPath =  join(this.publicDir, normalizedPath);
 
         if(!fullPath.startsWith(this.publicDir)) {
-            throw new Error('FILE_ACCESS_DENIED');
+            throw new FileServiceError('FILE_NOT_FOUND');
         }
 
         if (!existsSync(fullPath)) {
-            throw new Error('FILE_NOT_FOUND');
+            throw new FileServiceError('FILE_NOT_FOUND');
         }
 
         const stats = statSync(fullPath);
         if(stats.isDirectory()) {
-            throw new Error('IS_A_DIRECTORY');
+            throw new FileServiceError('FILE_NOT_FOUND');
         }
 
         const stream = createReadStream(fullPath);

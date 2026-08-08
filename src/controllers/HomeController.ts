@@ -1,4 +1,4 @@
-import { IncomingMessage, ServerResponse } from "node:http";
+/*import { IncomingMessage, ServerResponse } from "node:http";
 import { pipeline } from 'node:stream/promises';
 import { FileService } from "../service/FileService.js";
 import { FileServiceError, MIME_TYPES } from '../types/file.types.js';
@@ -9,7 +9,7 @@ export class HomeController{
     ) {}
     async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
         try {
-            const filePath = req.url ===  '/' ? 'index.html' : req.url ?? 'index.html';
+            const filePath = "index.html";
 
             const { stream,size,extension } = this.fileService.getFileStream(filePath);
 
@@ -51,4 +51,4 @@ export class HomeController{
     }
 }
 
-}
+}*/

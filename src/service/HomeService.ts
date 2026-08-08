@@ -1,4 +1,4 @@
-export class HomeService {
+/*export class HomeService {
 
     getHomePage(): string {
         return `
@@ -16,4 +16,4 @@ export class HomeService {
             </html>
         `;
     }
-}
+}*/

@@ -3,10 +3,10 @@ import { handleRoutes } from "./routes/router.js";
 
 const PORT = process.env.PORT || 3000;
 
-const server = createServer((req, res) => {
+const server = createServer(async (req, res) => {
 
     try {
-        handleRoutes(req,res);
+        await handleRoutes(req,res);
     } catch (error) {
         console.error('Unhandled error: ', error);
         res.writeHead(500, {'content-type': 'application/json'});
