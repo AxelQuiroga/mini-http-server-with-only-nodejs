@@ -1,5 +1,5 @@
 // Union type para restringir las extensiones soportadas
-export type SupportedExtension = '.html' | '.css' | '.js' | '.json' | '.png' | '.jpg' | '.svg';
+export type SupportedExtension = '.html' | '.css' | '.js' | '.json' | '.png' | '.jpg' | '.svg' | '.jpeg' | '.mp4' ;
 
 // Mapas de MimeTypes tipados estrictamente
 export const MIME_TYPES: Record<SupportedExtension, string> = {
@@ -9,7 +9,9 @@ export const MIME_TYPES: Record<SupportedExtension, string> = {
   '.json': 'application/json',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
-  '.svg': 'image/svg+xml'
+  '.svg': 'image/svg+xml',
+  '.jpeg': 'image/jpeg',
+    '.mp4': 'video/mp4',
 };
 
 // Errores de Dominio tipados

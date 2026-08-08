@@ -19,13 +19,15 @@ export async function handleRoutes(
     return;
 }
   const url = req.url ?? '/';
-  const pathname = new URL(url, 'http://localhost').pathname;
+  const pathname = decodeURIComponent(
+    new URL(url, 'http://localhost').pathname
+);
 
   // Si piden la raíz '/', resolvemos explícitamente a 'index.html'
   // Si piden '/css/main.css', se pasa tal cual.
   const targetFilePath = pathname === '/' ? 'index.html' : pathname;
 
   // Le delegamos la ejecución al controlador pasándole únicamente el path objetivo
-  await staticFileController.handle(targetFilePath, res);
+  await staticFileController.handle(req,res,targetFilePath);
   
 }
