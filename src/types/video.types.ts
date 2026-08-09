@@ -10,3 +10,12 @@ export interface VideoStreamMetadata {
   totalSize: number;
   contentLength: number;
 }
+
+export interface VideoMetadata {
+  id: string;          
+  title: string;     
+  fileName: string;    
+  size: number;        
+  extension: string;   
+  streamUrl: string;   
+}

@@ -1,0 +1,162 @@
+/* ==========================================================================
+   1. VARIABLES & REINICIO
+   ========================================================================== */
+:root {
+  --bg-primary: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-card: #334155;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --accent: #38bdf8;
+  --accent-hover: #0284c7;
+  --border-radius: 12px;
+  --transition-speed: 0.3s ease;
+  --max-width: 1200px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   2. HEADER & NAVEGACIÓN
+   ========================================================================== */
+.header {
+  background-color: var(--bg-surface);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.025em;
+}
+
+.header p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* ==========================================================================
+   3. CONTENEDOR PRINCIPAL Y HERO
+   ========================================================================== */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  flex: 1;
+}
+
+.hero {
+  margin-bottom: 2rem;
+}
+
+.hero h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.hero p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+/* ==========================================================================
+   4. TARJETA DE VIDEO (RESPONSIVE GRID)
+   ========================================================================== */
+.video-card {
+  background-color: var(--bg-surface);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  display: grid;
+  grid-template-columns: 1fr;
+  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+}
+
+/* Efecto hover suave en la tarjeta */
+.video-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.4);
+}
+
+.video-player {
+  background-color: #000;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.video-player video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  outline: none;
+}
+
+.video-info {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.video-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  word-break: break-word; /* Evita desbordamiento si el título es muy largo */
+}
+
+.video-info p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.video-info span {
+  display: inline-block;
+  align-self: flex-start;
+  background-color: rgba(56, 189, 248, 0.1);
+  color: var(--accent);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
+/* ==========================================================================
+   5. MEDIA QUERIES (PANTALLAS MEDIANAS Y GRANDES)
+   ========================================================================== */
+/* Tabletas y Laptops pequeñas: Disposición horizontal cuando hay espacio */
+@media (min-width: 768px) {
+  .video-card {
+    grid-template-columns: 3fr 2fr;
+  }
+
+  .video-info {
+    justify-content: center;
+    padding: 2rem;
+  }
+}
