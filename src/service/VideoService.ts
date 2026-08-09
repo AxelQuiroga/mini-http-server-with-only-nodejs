@@ -82,7 +82,7 @@ export class VideoService {
       size,
       extension,
       // La URL exacta que resolverá el router y el StaticFileController
-      streamUrl: `/public/videos/${normalizedRelativePath}`
+      streamUrl: `/videos/${normalizedRelativePath}`
     };
   }
 

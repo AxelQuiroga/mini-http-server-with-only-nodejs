@@ -9,9 +9,9 @@ export class StaticFileController {
   constructor(private readonly fileService: FileService) {}
 
   async handle(
+    filePath: string,
     req: IncomingMessage,
     res: ServerResponse,
-    filePath: string,
   ): Promise<void> {
 
     try {

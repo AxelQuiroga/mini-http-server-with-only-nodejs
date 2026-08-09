@@ -1,162 +1,222 @@
-/* ==========================================================================
-   1. VARIABLES & REINICIO
-   ========================================================================== */
-:root {
-  --bg-primary: #0f172a;
-  --bg-surface: #1e293b;
-  --bg-card: #334155;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent: #38bdf8;
-  --accent-hover: #0284c7;
-  --border-radius: 12px;
-  --transition-speed: 0.3s ease;
-  --max-width: 1200px;
+/* =========================
+   Reset
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+html {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0f1115;
+    color: #f5f5f5;
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  line-height: 1.6;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    min-height: 100vh;
 }
 
-/* ==========================================================================
-   2. HEADER & NAVEGACIÓN
-   ========================================================================== */
-.header {
-  background-color: var(--bg-surface);
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+
+/* =========================
+   Layout
+========================= */
+
+body {
+    display: flex;
+    flex-direction: column;
 }
 
-.header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: -0.025em;
+header {
+    padding: 32px 48px;
+    border-bottom: 1px solid #252932;
+    background: #151820;
 }
 
-.header p {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
+header h1 {
+    font-size: 32px;
+    margin-bottom: 8px;
 }
 
-/* ==========================================================================
-   3. CONTENEDOR PRINCIPAL Y HERO
-   ========================================================================== */
-.container {
-  width: 100%;
-  max-width: var(--max-width);
-  margin: 0 auto;
-  padding: 2rem 1.5rem;
-  flex: 1;
+header p {
+    color: #9298a5;
+    font-size: 15px;
 }
 
-.hero {
-  margin-bottom: 2rem;
+main {
+    width: min(1400px, 100%);
+    margin: 0 auto;
+    padding: 40px 48px;
+
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 40px;
 }
 
-.hero h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
+
+/* =========================
+   Video library
+========================= */
+
+section:first-child {
+    min-width: 0;
 }
 
-.hero p {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
+section h2 {
+    font-size: 20px;
+    margin-bottom: 20px;
 }
 
-/* ==========================================================================
-   4. TARJETA DE VIDEO (RESPONSIVE GRID)
-   ========================================================================== */
-.video-card {
-  background-color: var(--bg-surface);
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-  display: grid;
-  grid-template-columns: 1fr;
-  transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+#video-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-/* Efecto hover suave en la tarjeta */
-.video-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.4);
+
+/* =========================
+   Video cards
+========================= */
+
+#video-list > div {
+    padding: 18px;
+    border: 1px solid #292d36;
+    border-radius: 10px;
+    background: #171a21;
+
+    transition:
+        border-color 0.2s ease,
+        background 0.2s ease,
+        transform 0.2s ease;
 }
 
-.video-player {
-  background-color: #000;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+#video-list > div:hover {
+    border-color: #4b5260;
+    background: #1c2028;
+    transform: translateY(-2px);
 }
 
-.video-player video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  outline: none;
+#video-list h3 {
+    font-size: 15px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+
+    word-break: break-word;
 }
 
-.video-info {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+#video-list p {
+    color: #858b98;
+    font-size: 13px;
+    margin-bottom: 5px;
 }
 
-.video-info h3 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  word-break: break-word; /* Evita desbordamiento si el título es muy largo */
+
+/* =========================
+   Buttons
+========================= */
+
+#video-list button {
+    margin-top: 12px;
+
+    border: none;
+    border-radius: 6px;
+
+    padding: 9px 14px;
+
+    background: #f1f1f1;
+    color: #111;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
 }
 
-.video-info p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+#video-list button:hover {
+    background: #ffffff;
+    transform: translateY(-1px);
 }
 
-.video-info span {
-  display: inline-block;
-  align-self: flex-start;
-  background-color: rgba(56, 189, 248, 0.1);
-  color: var(--accent);
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-top: 0.5rem;
+#video-list button:active {
+    transform: translateY(0);
 }
 
-/* ==========================================================================
-   5. MEDIA QUERIES (PANTALLAS MEDIANAS Y GRANDES)
-   ========================================================================== */
-/* Tabletas y Laptops pequeñas: Disposición horizontal cuando hay espacio */
-@media (min-width: 768px) {
-  .video-card {
-    grid-template-columns: 3fr 2fr;
-  }
 
-  .video-info {
-    justify-content: center;
-    padding: 2rem;
-  }
+/* =========================
+   Player
+========================= */
+
+section:last-child {
+    min-width: 0;
+}
+
+#video-player {
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+
+    background: #000;
+
+    border-radius: 12px;
+    border: 1px solid #292d36;
+
+    aspect-ratio: 16 / 9;
+}
+
+
+/* =========================
+   Empty / loading states
+========================= */
+
+#video-list > p {
+    padding: 24px;
+
+    border: 1px dashed #303540;
+    border-radius: 8px;
+
+    color: #858b98;
+    text-align: center;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 900px) {
+
+    main {
+        grid-template-columns: 1fr;
+        padding: 30px 24px;
+    }
+
+    header {
+        padding: 24px;
+    }
+
+    #video-player {
+        width: 100%;
+    }
+}
+
+
+@media (max-width: 500px) {
+
+    header h1 {
+        font-size: 26px;
+    }
+
+    main {
+        padding: 20px 16px;
+    }
+
+    #video-list > div {
+        padding: 15px;
+    }
 }

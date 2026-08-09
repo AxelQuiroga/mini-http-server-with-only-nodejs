@@ -1,56 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="/css/styles.css">
-
+    <link rel="stylesheet" href="./css/styles.css">
     <title>NodeStream</title>
 </head>
 
 <body>
 
-    <header class="header">
+    <header>
         <h1>NodeStream</h1>
-        <p>Native Node.js Media Server</p>
+        <p>Servidor HTTP construido con Node.js y TypeScript</p>
     </header>
 
-    <main class="container">
+    <main>
 
-        <section class="hero">
-            <h2>Media Library</h2>
-            <p>Streaming media powered by Node.js streams.</p>
+        <section>
+            <h2>Videos</h2>
+
+            <div id="video-list">
+                <p>Cargando videos...</p>
+            </div>
         </section>
 
-        <section class="video-card">
-
-            <div class="video-player">
-                <video controls>
-                    <source
-                        src="/videos/Camera%20Roll/WIN_20260601_18_14_21_Pro.mp4"
-                        type="video/mp4"
-                    >
-
-                    Tu navegador no soporta video HTML5.
-                </video>
-            </div>
-
-            <div class="video-info">
-                <h3>WIN_20260601_18_14_21_Pro.mp4</h3>
-
-                <p>
-                    Camera Roll
-                </p>
-
-                <span>
-                    MP4 · HTTP Range Streaming
-                </span>
-            </div>
-
+        <section>
+            <video
+                id="video-player"
+                controls
+                width="800"
+            >
+                Tu navegador no soporta video HTML5.
+            </video>
         </section>
 
     </main>
+
+    <script src="/js/app.js"></script>
 
 </body>
 </html>
