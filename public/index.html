@@ -1,42 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./css/styles.css">
-    <title>NodeStream</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NodeStream - Biblioteca Multimedia</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-
 <body>
 
-    <header>
-        <h1>NodeStream</h1>
-        <p>Servidor HTTP construido con Node.js y TypeScript</p>
-    </header>
+  <header class="navbar">
+    <div class="logo">
+      <span class="logo-icon">🎬</span>
+      <h1>NodeStream</h1>
+    </div>
+  </header>
 
-    <main>
+  <main class="container">
+    <!-- Seccion del Reproductor Principal -->
+    <section class="player-section">
+      <div class="video-wrapper">
+        <video id="video-player" controls preload="metadata">
+          <p>Tu navegador no soporta reproducción de video HTML5.</p>
+        </video>
+      </div>
+    </section>
 
-        <section>
-            <h2>Videos</h2>
+    <!-- Seccion de la Biblioteca -->
+    <section class="library-section">
+      <h2>Biblioteca de Videos</h2>
+      
+      <!-- ui.js renderiza las tarjetas o los estados de carga/error dentro de este contenedor -->
+      <div id="video-list" class="video-list"></div>
+    </section>
+  </main>
 
-            <div id="video-list">
-                <p>Cargando videos...</p>
-            </div>
-        </section>
-
-        <section>
-            <video
-                id="video-player"
-                controls
-                width="800"
-            >
-                Tu navegador no soporta video HTML5.
-            </video>
-        </section>
-
-    </main>
-
-    <script src="/js/app.js"></script>
-
+  <!-- script con type="module" para habilitar import/export nativo en app.js -->
+  <script type="module" src="/js/app.js"></script>
 </body>
 </html>
