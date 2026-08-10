@@ -3,11 +3,8 @@ import { join, extname } from 'node:path';
 import type { ReadStream, Stats } from 'node:fs';
 import { FileServiceError } from '../types/file.types.js';
 import type { ByteRange, VideoStreamMetadata } from '../types/video.types.js';
+import type { FileMetadata } from '../types/file.types.js';
 
-export interface FileMetadata {
-  size: number;
-  extension: string;
-}
 
 export class FileService {
   private readonly publicDir: string;
@@ -46,15 +43,15 @@ export class FileService {
   /**
    * Obtiene los metadatos de un archivo validado.
    */
-  getFileMetadata(relativePath: string): FileMetadata {
-    const { fullPath, stats } = this.validateAndResolvePath(relativePath);
+getFileMetadata(relativePath: string): FileMetadata {
+  const { fullPath, stats } = this.validateAndResolvePath(relativePath);
 
-    return {
-      size: stats.size,
-      extension: extname(fullPath).toLowerCase()
-    };
-  }
-
+  return {
+    size: stats.size,
+    extension: extname(fullPath).toLowerCase(),
+    modifiedTime: stats.mtime // Date de última modificación
+  };
+}
   /**
    * Retorna un ReadStream completo o acotado con opciones { start, end }.
    */

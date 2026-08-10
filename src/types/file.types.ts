@@ -26,3 +26,9 @@ export class FileServiceError extends Error {
     this.name = 'FileServiceError';
   }
 }
+
+export interface FileMetadata {
+  size: number;
+  extension: string;
+  modifiedTime: Date;
+}

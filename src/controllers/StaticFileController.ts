@@ -4,6 +4,7 @@ import { FileService } from '../service/FileService.js';
 import { FileServiceError, MIME_TYPES } from '../types/file.types.js';
 import type { SupportedExtension } from '../types/file.types.js';
 import { parseByteRange } from '../utils/rangeParser.js';
+import { generateETag, isCacheValid } from '../utils/cacheUtils.js';
 
 export class StaticFileController {
   constructor(private readonly fileService: FileService) {}
@@ -11,142 +12,119 @@ export class StaticFileController {
   async handle(
     filePath: string,
     req: IncomingMessage,
-    res: ServerResponse,
+    res: ServerResponse
   ): Promise<void> {
+    const method = req.method?.toUpperCase() ?? 'GET';
 
     try {
-      // 1. Obtenemos información del archivo
-      const {
-        size: totalFileSize,
-        extension
-      } = this.fileService.getFileMetadata(filePath);
+      // 1. Metadata del archivo
+      const metadata = this.fileService.getFileMetadata(filePath);
+      const { size: totalFileSize, extension, modifiedTime } = metadata;
 
-      const mimeType =
-        MIME_TYPES[extension as SupportedExtension]
-        ?? 'application/octet-stream';
+      const mimeType = MIME_TYPES[extension as SupportedExtension] ?? 'application/octet-stream';
 
-      // 2. Analizamos el header Range
-      const rangeResult = parseByteRange(
-        req.headers.range,
-        totalFileSize
+      // 2. Generación de cabeceras de caché HTTP
+      const etag = generateETag(metadata);
+      const lastModifiedUTC = modifiedTime.toUTCString();
+
+      // 3. Validación Condicional (304 Not Modified)
+      const isFresh = isCacheValid(
+        {
+          ifNoneMatch: req.headers['if-none-match'],
+          ifModifiedSince: req.headers['if-modified-since']
+        },
+        etag,
+        modifiedTime
       );
 
-      // =====================================================
-      // CASO 416: Range inválido
-      // =====================================================
+      if (isFresh) {
+        res.writeHead(304, {
+          'ETag': etag,
+          'Last-Modified': lastModifiedUTC,
+          'Cache-Control': 'public, max-age=3600'
+        });
+        res.end();
+        return;
+      }
 
+      // 4. Analizamos el header Range
+      const rangeResult = parseByteRange(req.headers.range, totalFileSize);
+
+      // CASO 416: Range inválido
       if (rangeResult.type === 'invalid') {
         res.writeHead(416, {
           'Content-Range': `bytes */${totalFileSize}`,
           'Content-Type': 'text/plain; charset=utf-8'
         });
-
         res.end('416 Range Not Satisfiable');
         return;
       }
 
-      // =====================================================
-      // CASO 206: Range válido
-      // =====================================================
-
+      // CASO 206: Range válido (Partial Content)
       if (rangeResult.type === 'valid') {
-
         const { start, end } = rangeResult.range;
-
         const contentLength = end - start + 1;
 
-        const stream = this.fileService.getFileStream(
-          filePath,
-          {
-            start,
-            end
-          }
-        );
-
         res.writeHead(206, {
-          'Content-Range':
-            `bytes ${start}-${end}/${totalFileSize}`,
-
+          'Content-Range': `bytes ${start}-${end}/${totalFileSize}`,
           'Accept-Ranges': 'bytes',
-
-          'Content-Length':
-            contentLength,
-
-          'Content-Type':
-            mimeType
+          'Content-Length': contentLength,
+          'Content-Type': mimeType,
+          'ETag': etag,
+          'Last-Modified': lastModifiedUTC,
+          'Cache-Control': 'public, max-age=3600'
         });
 
+        if (method === 'HEAD') {
+          res.end();
+          return;
+        }
+
+        const stream = this.fileService.getFileStream(filePath, { start, end });
         await pipeline(stream, res);
         return;
       }
 
-      // =====================================================
-      // CASO 200: No vino Range
-      // =====================================================
-
-      const stream = this.fileService.getFileStream(filePath);
-
+      // CASO 200: Petición Normal Completa
       res.writeHead(200, {
         'Content-Length': totalFileSize,
         'Accept-Ranges': 'bytes',
         'Content-Type': mimeType,
+        'ETag': etag,
+        'Last-Modified': lastModifiedUTC,
         'Cache-Control': 'public, max-age=3600'
       });
 
+      if (method === 'HEAD') {
+        res.end();
+        return;
+      }
+
+      const stream = this.fileService.getFileStream(filePath);
       await pipeline(stream, res);
 
     } catch (error: unknown) {
-
-      // =====================================================
-      // Errores conocidos del FileService
-      // =====================================================
-
       if (error instanceof FileServiceError) {
-
-        if (
-          error.code === 'FILE_NOT_FOUND' ||
-          error.code === 'IS_A_DIRECTORY'
-        ) {
-          res.writeHead(404, {
-            'Content-Type': 'text/plain; charset=utf-8'
-          });
-
+        if (error.code === 'FILE_NOT_FOUND' || error.code === 'IS_A_DIRECTORY') {
+          res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
           res.end('404 Not Found - Recurso no encontrado');
           return;
         }
 
         if (error.code === 'FILE_ACCESS_DENIED') {
-          res.writeHead(403, {
-            'Content-Type': 'text/plain; charset=utf-8'
-          });
-
+          res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
           res.end('403 Forbidden - Acceso denegado');
           return;
         }
       }
-
-      // =====================================================
-      // Error después de comenzar la respuesta
-      // =====================================================
 
       if (res.headersSent) {
         res.destroy();
         return;
       }
 
-      // =====================================================
-      // Error inesperado
-      // =====================================================
-
-      console.error(
-        'Error en StaticFileController:',
-        error
-      );
-
-      res.writeHead(500, {
-        'Content-Type': 'text/plain; charset=utf-8'
-      });
-
+      console.error('Error en StaticFileController:', error);
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('500 Internal Server Error');
     }
   }
