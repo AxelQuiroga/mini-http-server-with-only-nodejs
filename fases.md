@@ -29,11 +29,11 @@ FASE 3 ─── HTTP PROFESIONAL
 
 FASE 4 ─── MEDIA     ← AHORA
              │
-             ├── thumbnails                     
-             ├── metadata
-             ├── duración
-             ├── formatos
-             └── ffmpeg
+             ├── thumbnails                  ✅               
+             ├── metadata                    ✅
+             ├── duración                    ✅
+             ├── formatos                    ✅
+             └── ffmpeg                      ✅
 
 FASE 5 ─── ARQUITECTURA
              │

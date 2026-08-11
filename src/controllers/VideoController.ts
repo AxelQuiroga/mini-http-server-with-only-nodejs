@@ -11,14 +11,14 @@ export class VideoController {
         private readonly videoService: VideoService
     ) {}
 
-    handle(
+    async handle(
         req: IncomingMessage,
         res: ServerResponse
-    ): void {
+    ): Promise<void> {
 
         try {
 
-            const videos = this.videoService.getAllVideos();
+            const videos = await this.videoService.getAllVideos();
 
             res.writeHead(200, {
                 'Content-Type': 'application/json; charset=utf-8'

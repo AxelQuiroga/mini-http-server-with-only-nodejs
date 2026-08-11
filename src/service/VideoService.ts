@@ -1,6 +1,7 @@
 import { readdirSync } from 'node:fs';
 import { join, extname, parse, relative } from 'node:path';
 import { FileService } from './FileService.js';
+import { MediaService } from './MediaService.js'; // 1. Importamos MediaService
 import type { VideoMetadata } from '../types/video.types.js';
 
 export class VideoService {
@@ -9,24 +10,27 @@ export class VideoService {
 
   constructor(
     private readonly fileService: FileService,
+    private readonly mediaService: MediaService, // 2. Inyectamos MediaService
     private readonly videosFolder: string = 'public/videos'
   ) {
     this.absoluteVideosFolderPath = join(process.cwd(), this.videosFolder);
   }
 
   /**
-   * Obtiene todos los videos buscando recursivamente en todas las subcarpetas.
+   * Obtiene todos los videos buscando recursivamente.
+   * Ahora es ASÍNCRONO porque ffprobe ejecuta un proceso asíncrono.
    */
-  getAllVideos(): VideoMetadata[] {
+  async getAllVideos(): Promise<VideoMetadata[]> {
     const videoRelativePaths = this.scanDirectoryRecursively(this.absoluteVideosFolderPath);
 
-    return videoRelativePaths.map((relativePath) => this.mapToVideoMetadata(relativePath));
+    // Mapeamos de forma asíncrona todos los archivos
+    const metadataPromises = videoRelativePaths.map((relativePath) =>
+      this.mapToVideoMetadata(relativePath)
+    );
+
+    return Promise.all(metadataPromises);
   }
 
-  /**
-   * Método auxiliar recursivo.
-   * Recorre carpetas y devuelve rutas relativas respecto a public/videos (ej: 'trailers/video1.mp4')
-   */
   private scanDirectoryRecursively(currentDirPath: string): string[] {
     let results: string[] = [];
 
@@ -37,21 +41,18 @@ export class VideoService {
         const fullEntryPath = join(currentDirPath, entry.name);
 
         if (entry.isDirectory()) {
-          // Llamada recursiva hacia la subcarpeta
           const subDirFiles = this.scanDirectoryRecursively(fullEntryPath);
           results = results.concat(subDirFiles);
         } else if (entry.isFile()) {
           const ext = extname(entry.name).toLowerCase();
 
           if (this.ALLOWED_EXTENSIONS.has(ext)) {
-            // Obtenemos la ruta relativa desde la carpeta raíz de videos (ej: 'trailers/avengers.mp4')
             const relativeToVideosFolder = relative(this.absoluteVideosFolderPath, fullEntryPath);
             results.push(relativeToVideosFolder);
           }
         }
       }
     } catch (error: unknown) {
-      // Manejo seguro si la carpeta aún no existe en disco
       console.warn(`[VideoService] No se pudo leer el directorio: ${currentDirPath}`);
     }
 
@@ -59,36 +60,35 @@ export class VideoService {
   }
 
   /**
-   * Convierte la ruta relativa de un video en un DTO formateado para la API.
-   * @param relativeVideoPath Ruta relativa a la carpeta de videos (ej: 'trailers/avengers.mp4')
+   * Ahora es ASÍNCRO para consultar a MediaService por la duración, resolución, etc.
    */
-  private mapToVideoMetadata(relativeVideoPath: string): VideoMetadata {
-    // Normalizamos separadores para compatibilidad de URLs HTTP (reemplaza '\' por '/')
+  private async mapToVideoMetadata(relativeVideoPath: string): Promise<VideoMetadata> {
     const normalizedRelativePath = relativeVideoPath.replace(/\\/g, '/');
-
-    // La ruta que FileService entiende (ej: 'videos/trailers/avengers.mp4')
     const fileServicePath = join('videos', normalizedRelativePath);
 
+    // Metadata básica de disco (size, extension)
     const { size, extension } = this.fileService.getFileMetadata(fileServicePath);
     const fileInfo = parse(normalizedRelativePath);
 
-    // Generamos un ID seguro en Base64 a partir de la ruta relativa completa
+    // Ruta absoluta que necesita ffprobe para inspeccionar
+    const absoluteFilePath = join(this.absoluteVideosFolderPath, normalizedRelativePath);
+
+    // 3. Inspección con ffprobe mediante MediaService
+    const mediaInfo = await this.mediaService.getVideoInfo(absoluteFilePath);
+
     const id = Buffer.from(normalizedRelativePath).toString('base64url');
 
     return {
-      id,
-      title: this.formatTitle(fileInfo.name),
-      fileName: fileInfo.base,
-      size,
-      extension,
-      // La URL exacta que resolverá el router y el StaticFileController
-      streamUrl: `/videos/${normalizedRelativePath}`
-    };
+  id,
+  title: this.formatTitle(fileInfo.name),
+  fileName: fileInfo.base,
+  size,
+  extension,
+  streamUrl: `/videos/${normalizedRelativePath}`,
+  mediaInfo // <-- Le pasás el objeto completo que te devolvió MediaService
+};
   }
 
-  /**
-   * Limpia el nombre del archivo para mostrar un título amigable.
-   */
   private formatTitle(rawName: string): string {
     return rawName
       .replace(/[-_]/g, ' ')

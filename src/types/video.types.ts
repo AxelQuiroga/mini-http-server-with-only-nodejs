@@ -1,3 +1,5 @@
+import type{ VideoMediaInfo } from './media.types.js';
+
 export interface ByteRange {
   start: number;
   end: number;
@@ -17,5 +19,6 @@ export interface VideoMetadata {
   fileName: string;    
   size: number;        
   extension: string;   
-  streamUrl: string;   
+  streamUrl: string;
+  mediaInfo?: VideoMediaInfo;
 }

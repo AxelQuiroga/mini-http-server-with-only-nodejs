@@ -1,19 +1,21 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { FileService } from '../service/FileService.js';
+import { MediaService } from '../service/MediaService.js'; // 1. Importar MediaService
 import { VideoService } from '../service/VideoService.js';
 import { StaticFileController } from '../controllers/StaticFileController.js';
 import { VideoController } from '../controllers/VideoController.js';
 
 const fileService = new FileService();
-const videoService = new VideoService(fileService);
+const mediaService = new MediaService(); // 2. Instanciar MediaService
+const videoService = new VideoService(fileService, mediaService); // 3. Inyectar en VideoService
 
 const staticFileController = new StaticFileController(fileService);
 const videoController = new VideoController(videoService);
 
-export function handleRoutes(
+export async function handleRoutes(
     req: IncomingMessage,
     res: ServerResponse
-): void {
+): Promise<void> {
 
     const url = req.url ?? '/';
     const method = req.method?.toUpperCase() ?? 'GET';
