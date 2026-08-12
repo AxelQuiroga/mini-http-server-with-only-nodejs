@@ -3,35 +3,10 @@ import {
     ServerResponse
 } from 'node:http';
 
-import { FileSystemRepository } from '../../infraestructure/filesystem/FileSystemRepository.js';
-import { FFmpegMediaRepository } from '../../infraestructure/media/FFmpegMediaRepository.js';
-
-import { VideoService } from '../../application/services/VideoService.js';
-
-import { StaticFileController } from '../controllers/StaticFileController.js';
-import { VideoController } from '../controllers/VideoController.js';
-
-
-// Infrastructure
-const fileRepository = new FileSystemRepository();
-const mediaRepository = new FFmpegMediaRepository();
-
-
-// Application
-const videoService = new VideoService(
-    fileRepository,
-    mediaRepository
-);
-
-
-// Presentation
-const staticFileController = new StaticFileController(
-    fileRepository
-);
-
-const videoController = new VideoController(
-    videoService
-);
+import {
+    staticFileController,
+    videoController
+} from '../../infraestructure/composition/container.js';
 
 
 export async function handleRoutes(
@@ -111,7 +86,7 @@ export async function handleRoutes(
             pathname.startsWith('/videos/')
                 ? pathname.slice(1)
                 : pathname.replace(
-                    /^\/public\//,
+                    /^\/?public\//,
                     ''
                 );
 

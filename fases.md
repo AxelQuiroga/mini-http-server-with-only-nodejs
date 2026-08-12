@@ -35,31 +35,15 @@ FASE 4 ─── MEDIA
              ├── formatos                    ✅
              └── ffmpeg                      ✅
 
-FASE 5 ─── ARQUITECTURA    ← AHORA
+FASE 5 ─── ARQUITECTURA    
              │
-             ├── interfaces
-             ├── repositories
-             ├── dependency injection
+             ├── interfaces                  ✅
+             ├── repositories                ✅
+             ├── dependency injection        ✅
              ├── tests
-             └── separación de dominio/infraestructura
-FASE 5 — ARQUITECTURA
+             └── separación de dominio/infraestructura  ✅
 
-[ ] Definir dominio
-[ ] Separar dominio de infraestructura
-[ ] Crear interfaces
-[ ] Crear VideoRepository
-[ ] Implementar FileSystemVideoRepository
-[ ] Abstraer FFprobe
-[ ] Dependency Injection manual
-[ ] Refactorizar VideoService
-[ ] Unit tests
-[ ] Integration tests
-[ ] Mantener funcionando API
-[ ] Mantener funcionando streaming
-
-
-
-FASE 6 ─── PRODUCCIÓN
+FASE 6 ─── PRODUCCIÓN  ← AHORA
              │
              ├── Docker
              ├── logging
