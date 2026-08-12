@@ -1,4 +1,4 @@
-import type { RangeParseResult } from '../types/RangeParse.js';
+import type { RangeParseResult } from '../domain/types/RangeParse.js';
 /**
  * Parsea y valida únicamente los formatos:
  * - bytes=start-end (ej: bytes=0-1024)

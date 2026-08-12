@@ -1,13 +1,15 @@
 import { IncomingMessage, ServerResponse } from 'node:http';
 import { pipeline } from 'node:stream/promises';
-import { FileService } from '../service/FileService.js';
-import { FileServiceError, MIME_TYPES } from '../types/file.types.js';
-import type { SupportedExtension } from '../types/file.types.js';
-import { parseByteRange } from '../utils/rangeParser.js';
-import { generateETag, isCacheValid } from '../utils/cacheUtils.js';
+import type { FileRepository } from '../../domain/repositories/FileRepository.js';
+import { FileServiceError, MIME_TYPES } from '../../domain/types/file.types.js';
+import type { SupportedExtension } from '../../domain/types/file.types.js';
+import { parseByteRange } from '../../utils/rangeParser.js';
+import { generateETag, isCacheValid } from '../../utils/cacheUtils.js';
 
 export class StaticFileController {
-  constructor(private readonly fileService: FileService) {}
+  constructor(
+    private readonly fileRepository: FileRepository
+) {}
 
   async handle(
     filePath: string,
@@ -18,7 +20,7 @@ export class StaticFileController {
 
     try {
       // 1. Metadata del archivo
-      const metadata = this.fileService.getFileMetadata(filePath);
+      const metadata = this.fileRepository.getFileMetadata(filePath);
       const { size: totalFileSize, extension, modifiedTime } = metadata;
 
       const mimeType = MIME_TYPES[extension as SupportedExtension] ?? 'application/octet-stream';
@@ -80,7 +82,7 @@ export class StaticFileController {
           return;
         }
 
-        const stream = this.fileService.getFileStream(filePath, { start, end });
+        const stream = this.fileRepository.getFileStream(filePath, { start, end });
         await pipeline(stream, res);
         return;
       }
@@ -100,7 +102,7 @@ export class StaticFileController {
         return;
       }
 
-      const stream = this.fileService.getFileStream(filePath);
+      const stream = this.fileRepository.getFileStream(filePath);
       await pipeline(stream, res);
 
     } catch (error: unknown) {

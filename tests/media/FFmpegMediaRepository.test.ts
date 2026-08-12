@@ -1,6 +1,6 @@
-import { MediaService } from '../../src/service/MediaService.js';
+import { FFmpegMediaRepository } from '../../src/infraestructure/media/FFmpegMediaRepository.js';
 
-const mediaService = new MediaService();
+const mediaRepository = new FFmpegMediaRepository();
 
 const videoPath =
     '/home/electro-pc/node-streams/public/videos/Camera Roll/WIN_20260601_18_14_21_Pro.mp4';
@@ -9,7 +9,7 @@ async function main() {
 
     console.log('Analizando video...');
 
-    const metadata = await mediaService.getVideoInfo(videoPath);
+    const metadata = await mediaRepository.getVideoInfo(videoPath);
 
     console.log('\nMetadata obtenida:');
     console.dir(metadata, { depth: null });

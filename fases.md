@@ -27,7 +27,7 @@ FASE 3 ─── HTTP PROFESIONAL
              ├── Cache-Control               ✅
              └── mejor manejo de errores     ✅
 
-FASE 4 ─── MEDIA     ← AHORA
+FASE 4 ─── MEDIA     
              │
              ├── thumbnails                  ✅               
              ├── metadata                    ✅
@@ -35,13 +35,29 @@ FASE 4 ─── MEDIA     ← AHORA
              ├── formatos                    ✅
              └── ffmpeg                      ✅
 
-FASE 5 ─── ARQUITECTURA
+FASE 5 ─── ARQUITECTURA    ← AHORA
              │
              ├── interfaces
              ├── repositories
              ├── dependency injection
              ├── tests
              └── separación de dominio/infraestructura
+FASE 5 — ARQUITECTURA
+
+[ ] Definir dominio
+[ ] Separar dominio de infraestructura
+[ ] Crear interfaces
+[ ] Crear VideoRepository
+[ ] Implementar FileSystemVideoRepository
+[ ] Abstraer FFprobe
+[ ] Dependency Injection manual
+[ ] Refactorizar VideoService
+[ ] Unit tests
+[ ] Integration tests
+[ ] Mantener funcionando API
+[ ] Mantener funcionando streaming
+
+
 
 FASE 6 ─── PRODUCCIÓN
              │
@@ -51,3 +67,36 @@ FASE 6 ─── PRODUCCIÓN
              ├── límites
              ├── seguridad
              └── deployment
+
+
+
+src/
+├── domain/
+│   ├── repositories/
+│   └── types/
+│
+├── application/
+│   └── services/
+│       └── VideoService.ts
+│
+├── infrastructure/
+│   ├── filesystem/
+│   │   └── FileSystemRepository.ts
+│   └── media/
+│       └── FFmpegMediaRepository.ts
+│
+├── presentation/
+│   ├── controllers/
+│   │   ├── StaticFileController.ts
+│   │   └── VideoController.ts
+│   └── routes/
+│       └── router.ts
+│
+└── server.ts
+StaticFileController
+        │
+        ▼
+  FileRepository   ← contrato
+        ▲
+        │
+FileSystemRepository ← implementación concreta

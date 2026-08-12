@@ -2,9 +2,7 @@ import {
     IncomingMessage,
     ServerResponse
 } from 'node:http';
-
-import { VideoService } from '../service/VideoService.js';
-
+import { VideoService } from '../../application/services/VideoService.js';
 export class VideoController {
 
     constructor(

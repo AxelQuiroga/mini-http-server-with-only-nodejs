@@ -1,5 +1,5 @@
 import { createServer } from "http";
-import { handleRoutes } from "./routes/router.js";
+import { handleRoutes } from "./presentation/routes/router.js";
 
 const PORT = process.env.PORT || 3000;
 

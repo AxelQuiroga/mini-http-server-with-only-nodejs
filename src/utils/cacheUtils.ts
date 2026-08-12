@@ -1,4 +1,4 @@
-import type { FileMetadata } from '../types/file.types.js';
+import type { FileMetadata } from '../domain/types/file.types.js';
 
 /**
  * Genera un ETag determinístico a partir del tamaño y fecha de modificación en formato hexadecimal.

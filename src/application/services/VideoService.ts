@@ -1,18 +1,18 @@
 import { readdirSync } from 'node:fs';
 import { join, extname, parse, relative } from 'node:path';
-import { FileService } from './FileService.js';
-import { MediaService } from './MediaService.js'; // 1. Importamos MediaService
-import type { VideoMetadata } from '../types/video.types.js';
+import type { FileRepository } from '../../domain/repositories/FileRepository.js';
+import type { MediaRepository } from '../../domain/repositories/MediaRepository.js';
+import type { VideoMetadata } from '../../domain/types/video.types.js';
 
 export class VideoService {
   private readonly ALLOWED_EXTENSIONS = new Set(['.mp4', '.mkv', '.webm', '.mov', '.avi']);
   private readonly absoluteVideosFolderPath: string;
 
   constructor(
-    private readonly fileService: FileService,
-    private readonly mediaService: MediaService, // 2. Inyectamos MediaService
+    private readonly fileRepository: FileRepository,
+    private readonly mediaRepository: MediaRepository,
     private readonly videosFolder: string = 'public/videos'
-  ) {
+) {
     this.absoluteVideosFolderPath = join(process.cwd(), this.videosFolder);
   }
 
@@ -67,14 +67,14 @@ export class VideoService {
     const fileServicePath = join('videos', normalizedRelativePath);
 
     // Metadata básica de disco (size, extension)
-    const { size, extension } = this.fileService.getFileMetadata(fileServicePath);
+    const { size, extension } = this.fileRepository.getFileMetadata(fileServicePath);
     const fileInfo = parse(normalizedRelativePath);
 
     // Ruta absoluta que necesita ffprobe para inspeccionar
     const absoluteFilePath = join(this.absoluteVideosFolderPath, normalizedRelativePath);
 
     // 3. Inspección con ffprobe mediante MediaService
-    const mediaInfo = await this.mediaService.getVideoInfo(absoluteFilePath);
+    const mediaInfo = await this.mediaRepository.getVideoInfo(absoluteFilePath);
 
     const id = Buffer.from(normalizedRelativePath).toString('base64url');
 

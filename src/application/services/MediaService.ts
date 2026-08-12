@@ -1,6 +1,6 @@
-import { execFile } from 'node:child_process';
+/*import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { VideoMediaInfo } from '../types/media.types.js';
+import type { VideoMediaInfo } from '../../domain/types/media.types.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -90,4 +90,4 @@ export class MediaService {
             );
         }
     }
-}
+}*/

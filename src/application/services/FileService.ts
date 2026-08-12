@@ -1,10 +1,17 @@
-import { createReadStream, statSync, existsSync } from 'node:fs';
+/*import { createReadStream, statSync, existsSync } from 'node:fs';
 import { join, extname } from 'node:path';
 import type { ReadStream, Stats } from 'node:fs';
-import { FileServiceError } from '../types/file.types.js';
-import type { ByteRange, VideoStreamMetadata } from '../types/video.types.js';
-import type { FileMetadata } from '../types/file.types.js';
 
+import { FileServiceError } from '../../domain/types/file.types.js';
+
+import type {
+  ByteRange,
+  VideoStreamMetadata
+} from '../../domain/types/video.types.js';
+
+import type {
+  FileMetadata
+} from '../../domain/types/file.types.js';
 
 export class FileService {
   private readonly publicDir: string;
@@ -13,10 +20,7 @@ export class FileService {
     this.publicDir = join(process.cwd(), publicDirName);
   }
 
-  /**
-   * Valida la seguridad de la ruta, la existencia del archivo y que no sea un directorio.
-   * Retorna la ruta absoluta validada junto con sus File Stats.
-   */
+
   private validateAndResolvePath(relativePath: string): { fullPath: string; stats: Stats } {
     const normalizedPath = relativePath.startsWith('/') ? relativePath.slice(1) : relativePath;
     const fullPath = join(this.publicDir, normalizedPath);
@@ -40,9 +44,6 @@ export class FileService {
     return { fullPath, stats };
   }
 
-  /**
-   * Obtiene los metadatos de un archivo validado.
-   */
 getFileMetadata(relativePath: string): FileMetadata {
   const { fullPath, stats } = this.validateAndResolvePath(relativePath);
 
@@ -52,18 +53,14 @@ getFileMetadata(relativePath: string): FileMetadata {
     modifiedTime: stats.mtime // Date de última modificación
   };
 }
-  /**
-   * Retorna un ReadStream completo o acotado con opciones { start, end }.
-   */
+
   getFileStream(relativePath: string, options?: { start?: number; end?: number }): ReadStream {
     const { fullPath } = this.validateAndResolvePath(relativePath);
 
     return createReadStream(fullPath, options);
   }
 
-  /**
-   * Retorna el stream parcial y los metadatos de rango calculados para streaming de video.
-   */
+
   getPartialFileStream(relativePath: string, range: ByteRange): VideoStreamMetadata {
     const { fullPath, stats } = this.validateAndResolvePath(relativePath);
     const totalSize = stats.size;
@@ -83,4 +80,4 @@ getFileMetadata(relativePath: string): FileMetadata {
       contentLength
     };
   }
-}
+}*/
