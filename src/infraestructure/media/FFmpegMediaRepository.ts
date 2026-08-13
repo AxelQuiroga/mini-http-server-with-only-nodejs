@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-
+import { existsSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type {
     VideoMediaInfo
 } from '../../domain/types/media.types.js';
@@ -118,4 +119,45 @@ export class FFmpegMediaRepository
             );
         }
     }
+
+    async getVideoThumbnail (
+        absoluteVideoPath: string,
+        thumbnailPath: string
+    ): Promise<void> {
+        if(existsSync(thumbnailPath)) {
+            return;
+        }
+
+
+        try {
+            
+            mkdirSync(dirname(thumbnailPath), { recursive: true })
+
+        const args = [
+            '-i',
+            absoluteVideoPath,
+            '-ss',
+            '1',
+            '-frames:v',
+            '1',
+            '-vf',
+            'scale=320:-1',
+            '-y',
+            thumbnailPath
+        ];
+        
+
+            await execFileAsync(
+                    'ffmpeg',
+                    args
+                );
+
+
+        } catch (error) {
+            console.error(error);
+            throw new Error('THUMBNAIL_GENERATION_FAILED', { cause: error });
+        }
+    }
+    
+
 }

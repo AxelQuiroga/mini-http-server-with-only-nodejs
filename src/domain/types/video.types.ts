@@ -21,4 +21,5 @@ export interface VideoMetadata {
   extension: string;   
   streamUrl: string;
   mediaInfo?: VideoMediaInfo;
+  thumbnailUrl?: string
 }

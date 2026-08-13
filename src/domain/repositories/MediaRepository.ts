@@ -6,4 +6,8 @@ export interface MediaRepository {
         absoluteFilePath: string
     ): Promise<VideoMediaInfo>;
 
+    getVideoThumbnail(
+    absoluteVideoPath: string,
+    thumbnailPath: string
+    ): Promise<void>;
 }

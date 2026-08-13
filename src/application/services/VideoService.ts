@@ -77,7 +77,14 @@ export class VideoService {
     const mediaInfo = await this.mediaRepository.getVideoInfo(absoluteFilePath);
 
     const id = Buffer.from(normalizedRelativePath).toString('base64url');
-
+    const thumbnailPath = join(process.cwd(), 'public', 'thumbnails', `${id}.jpg`);
+    let thumbnailUrl: string | undefined;
+    try {
+      await this.mediaRepository.getVideoThumbnail(absoluteFilePath, thumbnailPath);
+      thumbnailUrl = '/thumbnails/' + id + '.jpg';
+    } catch (error: unknown) {
+      console.warn(`[VideoService] No se pudo obtener la thumbnail de: ${absoluteFilePath}`);
+    }
     return {
   id,
   title: this.formatTitle(fileInfo.name),
@@ -85,7 +92,8 @@ export class VideoService {
   size,
   extension,
   streamUrl: `/videos/${normalizedRelativePath}`,
-  mediaInfo // <-- Le pasás el objeto completo que te devolvió MediaService
+  ...(thumbnailUrl ? { thumbnailUrl } : {}),
+  mediaInfo 
 };
   }
 
