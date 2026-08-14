@@ -195,3 +195,36 @@ body {
   object-fit: cover;
   display: block;
 }
+
+/* Contenedor de detalles */
+.video-details-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+}
+
+.video-details-chips {
+  display: flex;
+  flex-wrap: wrap;    /* Permite que las píldoras bajen si no entran en el ancho */
+  gap: 0.5rem;
+}
+
+.detail-chip {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px; /* Truco universal para dar forma de píldora */
+  white-space: nowrap;  /* Evita que el emoji o texto del chip se fracture */
+  
+  /* Transición suave para el micro-interacción de hover (opcional pero le da toque pro) */
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+/* Hover sobrio opcional */
+.detail-chip:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.15);
+}

@@ -82,6 +82,50 @@ export function highlightActiveVideo(activeElement) {
   }
 }
 
+/**
+ * Renderiza la sección de detalles del video mediante un título destacado y chips de metadata.
+ * @param {Object} video - Objeto del video con su metadata y mediaInfo opcional.
+ */
+export function renderVideoDetails(video) {
+  const detailsContainer = document.getElementById('video-details');
+  if (!detailsContainer) return;
+
+  // Guard clause: Si no existe mediaInfo o video, ocultamos y salimos
+  if (!video || !video.mediaInfo) {
+    detailsContainer.hidden = true;
+    detailsContainer.innerHTML = '';
+    return;
+  }
+
+  const { duration, width, height, videoCodec, audioCodec, fps } = video.mediaInfo;
+
+  // Hacemos visible el contenedor
+  detailsContainer.hidden = false;
+
+  // Renderizados condicionales: si no hay dato, la píldora directamente NO se renderiza
+  const audioChip = audioCodec
+    ? `<span class="detail-chip">🔊 ${audioCodec.toUpperCase()}</span>`
+    : '';
+
+  const fpsChip = fps
+    ? `<span class="detail-chip">⚡ ${fps} fps</span>`
+    : '';
+
+  const resolution = (width && height) ? `${width}×${height}` : '—';
+
+  detailsContainer.innerHTML = `
+    <h3 class="video-details-title">${escapeHTML(video.title ?? video.name ?? 'Sin título')}</h3>
+    <div class="video-details-chips">
+      <span class="detail-chip">⏱ ${formatDuration(duration)}</span>
+      <span class="detail-chip">📐 ${resolution}</span>
+      <span class="detail-chip">🎞 ${videoCodec ? videoCodec.toUpperCase() : '—'}</span>
+      ${audioChip}
+      ${fpsChip}
+      <span class="detail-chip">💾 ${formatFileSize(video.size)}</span>
+    </div>
+  `;
+}
+
 function formatFileSize(bytes) {
   if (bytes === 0) return '0 Bytes';
   const megabytes = bytes / (1024 * 1024);
@@ -98,4 +142,17 @@ function escapeHTML(str) {
             '"': '&quot;'
         })[tag] || tag
     );
+}
+
+export function formatDuration(seconds) {
+  if (!seconds || isNaN(seconds)) return '00:00';
+
+  const totalSeconds = Math.round(seconds);
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainingSeconds = totalSeconds % 60;
+
+  const paddedMinutes = String(minutes).padStart(2, '0');
+  const paddedSeconds = String(remainingSeconds).padStart(2, '0');
+
+  return `${paddedMinutes}:${paddedSeconds}`;
 }

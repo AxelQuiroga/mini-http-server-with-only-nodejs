@@ -4,7 +4,8 @@ import {
   renderErrorState,
   renderVideos,
   playVideo,
-  highlightActiveVideo
+  highlightActiveVideo,
+  renderVideoDetails
 } from './ui.js';
 
 async function init() {
@@ -16,6 +17,7 @@ async function init() {
     renderVideos(videos, (selectedVideo, element) => {
       highlightActiveVideo(element);
       playVideo(selectedVideo.streamUrl);
+      renderVideoDetails(selectedVideo);
     });
 
   } catch (error) {
