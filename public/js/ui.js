@@ -34,6 +34,11 @@ export function renderVideos(videos, onSelectVideo) {
     videoElement.className = 'video-item';
 
     videoElement.innerHTML = `
+    <div class="video-thumb">
+        ${video.thumbnailUrl
+    ? `<img src="${video.thumbnailUrl}" alt="${escapeHTML(video.title)}" loading="lazy" onerror="this.style.display='none'"/>`
+    : ''}
+    </div>
       <div class="video-info">
         <h3>${escapeHTML(video.title)}</h3>
         <p class="meta">${video.extension.toUpperCase()} • ${formatFileSize(video.size)}</p>

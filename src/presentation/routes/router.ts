@@ -54,6 +54,10 @@ export async function handleRoutes(
 
         return;
     }
+    if (pathname === '/') {
+    await staticFileController.handle('index.html', req, res);
+    return;
+}
 
 
     // 2. Archivos estáticos y videos

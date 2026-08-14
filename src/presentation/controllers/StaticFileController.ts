@@ -43,7 +43,7 @@ export class StaticFileController {
         res.writeHead(304, {
           'ETag': etag,
           'Last-Modified': lastModifiedUTC,
-          'Cache-Control': 'public, max-age=3600'
+          'Cache-Control': 'public, no-cache'
         });
         res.end();
         return;
@@ -74,7 +74,7 @@ export class StaticFileController {
           'Content-Type': mimeType,
           'ETag': etag,
           'Last-Modified': lastModifiedUTC,
-          'Cache-Control': 'public, max-age=3600'
+          'Cache-Control': 'public, no-cache'
         });
 
         if (method === 'HEAD') {
@@ -94,7 +94,7 @@ export class StaticFileController {
         'Content-Type': mimeType,
         'ETag': etag,
         'Last-Modified': lastModifiedUTC,
-        'Cache-Control': 'public, max-age=3600'
+        'Cache-Control': 'public, no-cache'
       });
 
       if (method === 'HEAD') {
