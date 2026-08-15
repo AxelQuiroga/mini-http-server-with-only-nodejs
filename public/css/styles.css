@@ -179,6 +179,7 @@ body {
 }
 
 .video-thumb {
+  position: relative;
   aspect-ratio: 16/9; 
   border-radius: 8px;
   overflow: hidden;
@@ -189,7 +190,14 @@ body {
   font-size: 2.5rem;
 }
 
+.video-thumb::before {
+  content: '🎬';
+  font-size: 2.5rem;
+}
+
+
 .video-thumb img {
+  position: absolute;
   width: 100%;
   height: 100%;
   object-fit: cover;

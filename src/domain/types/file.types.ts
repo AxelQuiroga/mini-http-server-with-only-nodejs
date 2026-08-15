@@ -1,5 +1,5 @@
 // Union type para restringir las extensiones soportadas
-export type SupportedExtension = '.html' | '.css' | '.js' | '.json' | '.png' | '.jpg' | '.svg' | '.jpeg' | '.mp4' ;
+export type SupportedExtension = '.html' | '.css' | '.js' | '.json' | '.png' | '.jpg' | '.svg' | '.jpeg' | '.mp4'  | '.mkv' | '.webm' | '.mov' | '.avi';
 
 // Mapas de MimeTypes tipados estrictamente
 export const MIME_TYPES: Record<SupportedExtension, string> = {
@@ -11,7 +11,11 @@ export const MIME_TYPES: Record<SupportedExtension, string> = {
   '.jpg': 'image/jpeg',
   '.svg': 'image/svg+xml',
   '.jpeg': 'image/jpeg',
-    '.mp4': 'video/mp4',
+  '.mp4': 'video/mp4',
+  '.mkv': 'video/x-matroska',
+  '.webm': 'video/webm',
+  '.mov': 'video/quicktime',
+  '.avi': 'video/x-msvideo',
 };
 
 // Errores de Dominio tipados

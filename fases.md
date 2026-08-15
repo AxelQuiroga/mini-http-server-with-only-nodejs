@@ -85,8 +85,3 @@ StaticFileController
         │
 FileSystemRepository ← implementación concreta
 
-#	Tarea	Por qué
-1	Tests (fase 5)	Sin tests, dockerizar y deployar es construir el piso 6 sin revisar los cimientos. Es lo más crítico ANTES de producción
-2	Mini-update frontend	Mostrar duración + resolución en las tarjetas = tocar ui.js + CSS, ~30 líneas. De paso arreglás el doble play()
-//3	Aclarar thumbnails	Implementarlo o tacharlo del plan. No puede quedar un ✅ falso HECHO
-4	Fase 6	Docker, logging, seguridad, deploy — el frontend NO te bloquea para estos

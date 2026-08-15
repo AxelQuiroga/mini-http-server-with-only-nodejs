@@ -63,7 +63,6 @@ export function playVideo(streamUrl) {
   // Forzamos la carga de la metadata del nuevo stream
   videoPlayer.load();
 
-  const playPromise = videoPlayer.play();
   videoPlayer.play()
     .then(() => {
         console.log('Reproducción iniciada');
