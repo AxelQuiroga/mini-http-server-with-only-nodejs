@@ -50,3 +50,82 @@ test('el comodin, tenes archivo? si, devuelve true', () => {
   const resultado = isCacheValid({ ifNoneMatch: "*" }, etag, new Date(1234567890));
   assert.equal(resultado, true);
 });
+
+test('If-None-Match con varias etiquetas: alguna coincide → true', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    { ifNoneMatch: `W/"a", ${etag}` },   // template literal: el etag real dentro del string
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, true);
+});
+
+test('If-None-Match con espacios alrededor → true (el trim lo salva)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    { ifNoneMatch: `  ${etag}  ` },   // ← espacios por delante y por detrás
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, true);
+});
+
+test('If-Modified-Since con la misma fecha → true (304)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    { ifModifiedSince: new Date(1234567890).toUTCString() },
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, true);
+});
+
+test('If-Modified-Since con fecha vieja → false (200)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    { ifModifiedSince: 'Thu, 01 Jan 1970 00:00:00 GMT' },
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, false);
+});
+
+test('If-Modified-Since con fecha futura → true (304)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    { ifModifiedSince: 'Thu, 01 Jan 2030 00:00:00 GMT' },
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, true);
+});
+
+test('If-Modified-Since con fecha inválida → false (200)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    { ifModifiedSince: 'fecha invalida' },
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, false);
+});
+
+test('si viene If-None-Match, la fecha se ignora (RFC 9110)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid(
+    {
+      ifNoneMatch: 'W/"otro"',                          // ← no coincide
+      ifModifiedSince: 'Thu, 01 Jan 2030 00:00:00 GMT'  // ← sola daría TRUE (caso 13)...
+    },
+    etag,
+    new Date(1234567890)
+  );
+  assert.equal(resultado, false);   // ← pero el ETag manda → FALSE
+});
+
+test('sin headers → false (200)', () => {
+  const etag = generateETag(makeMetadata());
+  const resultado = isCacheValid({}, etag, new Date(1234567890));
+  assert.equal(resultado, false);
+});
