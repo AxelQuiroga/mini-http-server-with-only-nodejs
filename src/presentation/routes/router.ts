@@ -5,7 +5,8 @@ import {
 
 import {
     staticFileController,
-    videoController
+    videoController,
+    uploadController
 } from '../../infraestructure/composition/container.js';
 
 
@@ -54,6 +55,35 @@ export async function handleRoutes(
 
         return;
     }
+
+    // 2. Upload
+    if (pathname === '/api/upload') {
+
+        if (method === 'POST') {
+
+            await uploadController.handle(
+                req,
+                res
+            );
+
+            return;
+        }
+
+        res.writeHead(405, {
+            'Allow': 'POST',
+            'Content-Type':
+                'application/json; charset=utf-8'
+        });
+
+        res.end(
+            JSON.stringify({
+                error: '405 Method Not Allowed'
+            })
+        );
+
+        return;
+    }
+
     if (pathname === '/') {
     await staticFileController.handle('index.html', req, res);
     return;

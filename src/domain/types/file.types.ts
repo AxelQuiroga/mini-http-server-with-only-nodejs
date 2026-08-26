@@ -22,7 +22,8 @@ export const MIME_TYPES: Record<SupportedExtension, string> = {
 export type FileServiceErrorCode = 
   | 'FILE_NOT_FOUND' 
   | 'FILE_ACCESS_DENIED' 
-  | 'IS_A_DIRECTORY';
+  | 'IS_A_DIRECTORY'
+  | 'FILE_ALREADY_EXISTS';
 
 export class FileServiceError extends Error {
   constructor(public readonly code: FileServiceErrorCode) {
