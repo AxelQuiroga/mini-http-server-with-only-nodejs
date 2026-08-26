@@ -10,6 +10,7 @@
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --danger: #f87171;
+  --success: #4ade80;
   --border-radius: 12px;
 }
 
@@ -235,4 +236,158 @@ body {
 .detail-chip:hover {
   transform: translateY(-1px);
   filter: brightness(1.15);
+}
+
+/* ============================================================
+   UPLOAD DE VIDEO
+   ============================================================ */
+
+/* --- Header de biblioteca: título + botón en fila --- */
+.library-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Override del margin-bottom que .library-section h2 ya tiene
+   (el wrapper .library-header se encarga del spacing ahora) */
+.library-header h2 {
+  margin-bottom: 0;
+}
+
+/* --- Botón "Subir video" --- */
+.btn-upload {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--bg-card-hover);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-upload:hover {
+  background-color: var(--bg-card-hover);
+  border-color: var(--accent);
+}
+
+.btn-upload:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --- Zona de upload (solo estilos cuando es visible) --- */
+.upload-zone:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--bg-card);
+  border-radius: var(--border-radius);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Fila 1: nombre + estado */
+.upload-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.upload-filename {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0; /* fija para que flexbox trunque correctamente */
+}
+
+.upload-status {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0; /* nunca se encoge: el filename es quien trunca */
+}
+
+/* Fila 2: barra + porcentaje */
+.upload-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.upload-progress-track {
+  flex: 1;
+  height: 8px;
+  background-color: var(--bg-card);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  height: 100%;
+  width: 0%;
+  background-color: var(--accent);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.upload-percentage {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 3ch; /* espacio para "100%" sin saltos de layout */
+  text-align: right;
+}
+
+/* Fila 3: bytes subidos */
+.upload-bytes {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* --- Estados via data-state --- */
+
+/* uploading: barra azul, filling */
+.upload-zone[data-state="uploading"] .upload-progress-fill {
+  background-color: var(--accent);
+}
+
+/* processing: barra azul con pulsación (ffprobe trabajando) */
+.upload-zone[data-state="processing"] .upload-progress-fill {
+  background-color: var(--accent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* success: barra verde, texto verde */
+.upload-zone[data-state="success"] .upload-progress-fill {
+  background-color: var(--success);
+}
+
+.upload-zone[data-state="success"] .upload-status {
+  color: var(--success);
+}
+
+/* error: barra roja, texto rojo */
+.upload-zone[data-state="error"] .upload-progress-fill {
+  background-color: var(--danger);
+}
+
+.upload-zone[data-state="error"] .upload-status {
+  color: var(--danger);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
 }
