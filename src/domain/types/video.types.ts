@@ -1,5 +1,13 @@
 import type{ VideoMediaInfo } from './media.types.js';
 
+/**
+ * Whitelist de extensiones de video aceptadas (minúsculas, con punto).
+ * Fuente para listVideos (FileSystemRepository) y el sync. UploadService y
+ * VideoService tienen copias locales (limpieza pendiente, fuera de esta etapa).
+ */
+export const ALLOWED_VIDEO_EXTENSIONS: ReadonlySet<string> =
+    new Set(['.mp4', '.mkv', '.webm', '.mov', '.avi']);
+
 export interface ByteRange {
   start: number;
   end: number;

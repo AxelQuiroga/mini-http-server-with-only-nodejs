@@ -14,7 +14,7 @@ import {
     access
 } from 'node:fs/promises';
 
-import { join, extname } from 'node:path';
+import { join, extname, relative } from 'node:path';
 
 import type {
     ReadStream,
@@ -32,6 +32,10 @@ import {
 import type {
     ByteRange,
     VideoStreamMetadata
+} from '../../domain/types/video.types.js';
+
+import {
+    ALLOWED_VIDEO_EXTENSIONS
 } from '../../domain/types/video.types.js';
 
 import type {
@@ -208,6 +212,68 @@ export class FileSystemRepository
         };
     }
 
+    // ─── Listado ────────────────────────────────────────────────────────
+
+    /**
+     * Ver listVideos() en el puerto. La raíz inexistente = almacenamiento
+     * vacío ([]), idéntico a cleanOrphanUploads; los errores de lectura
+     * REALES (permisos, EIO...) propagan para que el sync jamás borre
+     * filas sobre un listado incompleto.
+     */
+    async listVideos(): Promise<string[]> {
+
+        try {
+            await access(this.videosDir);
+        } catch {
+            return [];
+        }
+
+        const results: string[] = [];
+
+        await this.collectVideosRecursively(
+            this.videosDir,
+            this.videosDir,
+            results
+        );
+
+        return results;
+    }
+
+    private async collectVideosRecursively(
+        rootDir: string,
+        currentDir: string,
+        results: string[]
+    ): Promise<void> {
+
+        const entries =
+            await readdir(
+                currentDir,
+                { withFileTypes: true }
+            );
+
+        for (const entry of entries) {
+            const fullEntryPath =
+                join(currentDir, entry.name);
+
+            if (entry.isDirectory()) {
+                await this.collectVideosRecursively(
+                    rootDir,
+                    fullEntryPath,
+                    results
+                );
+            } else if (entry.isFile()) {
+                const ext =
+                    extname(entry.name).toLowerCase();
+
+                if (ALLOWED_VIDEO_EXTENSIONS.has(ext)) {
+                    results.push(
+                        relative(rootDir, fullEntryPath)
+                    );
+                }
+            }
+        }
+    }
+
     // ─── Upload (async) ────────────────────────────────────────────────
 
     /**
@@ -234,11 +300,30 @@ export class FileSystemRepository
                 `videos/${fileName}`
             );
 
-        // 1. Crear lock atómico (wx)
-        const lockHandle =
-            await open(lockPath, 'wx');
+        // 1. Crear lock atómico (wx).
+        //    EEXIST = el nombre ya está reservado por OTRO upload (o quedó
+        //    un .lock stale de un crash): NO se limpia aquí — el lock no es
+        //    nuestro y borrarlo rompería la exclusión del otro proceso.
+        //    Se mapea a FILE_ALREADY_EXISTS → el controller responde 409
+        //    (antes: EEXIST crudo → 500 genérico, fix C2).
+        try {
+            const lockHandle =
+                await open(lockPath, 'wx');
 
-        await lockHandle.close();
+            await lockHandle.close();
+        } catch (error) {
+            const code =
+                (error as NodeJS.ErrnoException)
+                    .code;
+
+            if (code === 'EEXIST') {
+                throw new FileServiceError(
+                    'FILE_ALREADY_EXISTS'
+                );
+            }
+
+            throw error;
+        }
 
         try {
             // 2. Verificar si el final ya existe
@@ -344,6 +429,33 @@ export class FileSystemRepository
 
         await unlink(lockPath)
             .catch(() => {});
+    }
+
+    // ─── Borrado ───────────────────────────────────────────────────────
+
+    /**
+     * Elimina el archivo final. Idempotente: ENOENT no es error
+     * (protegido por el traversal-check de resolveUploadPath).
+     * La falla REAL (EACCES, EISDIR...) se propaga para que el
+     * llamador registre el caso CATALOG ORPHAN si el rollback falla.
+     */
+    async deleteVideo(
+        relativePath: string
+    ): Promise<void> {
+
+        const fullPath =
+            this.resolveUploadPath(relativePath);
+
+        try {
+            await unlink(fullPath);
+        } catch (error) {
+            const code =
+                (error as NodeJS.ErrnoException).code;
+
+            if (code !== 'ENOENT') {
+                throw error;
+            }
+        }
     }
 
     /**

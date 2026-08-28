@@ -3,16 +3,15 @@ import {
     ServerResponse
 } from 'node:http';
 
-import {
-    staticFileController,
-    videoController,
-    uploadController
+import type {
+    Container
 } from '../../infraestructure/composition/container.js';
 
 
 export async function handleRoutes(
     req: IncomingMessage,
-    res: ServerResponse
+    res: ServerResponse,
+    container: Container
 ): Promise<void> {
 
     const url = req.url ?? '/';
@@ -33,7 +32,7 @@ export async function handleRoutes(
 
         if (method === 'GET') {
 
-            await videoController.handle(
+            await container.videoController.handle(
                 req,
                 res
             );
@@ -61,7 +60,7 @@ export async function handleRoutes(
 
         if (method === 'POST') {
 
-            await uploadController.handle(
+            await container.uploadController.handle(
                 req,
                 res
             );
@@ -85,7 +84,7 @@ export async function handleRoutes(
     }
 
     if (pathname === '/') {
-    await staticFileController.handle('index.html', req, res);
+    await container.staticFileController.handle('index.html', req, res);
     return;
 }
 
@@ -125,11 +124,7 @@ export async function handleRoutes(
                 );
 
 
-        await staticFileController.handle(
-            filePath,
-            req,
-            res
-        );
+        await container.staticFileController.handle(filePath, req, res);
 
         return;
     }

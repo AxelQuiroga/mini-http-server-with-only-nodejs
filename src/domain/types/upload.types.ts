@@ -8,7 +8,10 @@ import type {
 export type UploadErrorCode =
     | 'INVALID_FILENAME'
     | 'PAYLOAD_TOO_LARGE'
-    | 'UNSUPPORTED_MEDIA';
+    | 'UNSUPPORTED_MEDIA'
+    // Post-rename: la fila del catálogo no pudo persistirse (política de
+    // retry/rollback en UploadService). HTTP 500 vía statusMap default.
+    | 'CATALOG_ERROR';
 
 export class UploadError extends Error {
     constructor(

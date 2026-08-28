@@ -34,6 +34,20 @@ export interface FileRepository {
         range: ByteRange
     ): VideoStreamMetadata;
 
+    // ─── Listado ────────────────────────────────────────────────────────
+
+    /**
+     * Lista los archivos de VIDEO del storage (recursivo), relativos a la
+     * carpeta de videos, con separadores del SO (SIN normalizar — la
+     * normalización \ → / es responsabilidad del llamador).
+     * Filtra por ALLOWED_VIDEO_EXTENSIONS: el sync depende de no recibir
+     * basura (desktop.ini, .tmp, .lock) para no probarla con ffprobe.
+     * Seguridad: si la carpeta raíz NO existe (estado fresco) → [];
+     * cualquier OTRO error de lectura PROPAGA (un listado incompleto jamás
+     * debe fundamentar borrados de filas).
+     */
+    listVideos(): Promise<string[]>;
+
     // ─── Upload ─────────────────────────────────────────────────────────
 
     /**
@@ -59,6 +73,18 @@ export interface FileRepository {
      */
     cancelUpload(
         handle: UploadHandle
+    ): Promise<void>;
+
+    /**
+     * Elimina el archivo físico FINAL (no .tmp/.lock).
+     * Idempotente: ENOENT no es error; los errores REALES se propagan
+     * para que el llamador decida (rollback best-effort del caso A).
+     * El catálogo NO usa esta operación — el sync solo borra filas.
+     * Único uso actual: UploadService. Caso A: el archivo persiste pero
+     * el INSERT de metadata en PostgreSQL falló.
+     */
+    deleteVideo(
+        relativePath: string
     ): Promise<void>;
 
     /**
