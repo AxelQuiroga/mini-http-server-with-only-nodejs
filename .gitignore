@@ -61,3 +61,8 @@ pids/
 *.pid
 *.seed
 ```
+
+# =========================
+# Windows system files
+# =========================
+desktop.ini
