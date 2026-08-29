@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --import tsx --test tests/*.test.ts",
+    "test:integration": "node --env-file-if-exists=.env --import tsx --test --test-concurrency=1 tests/integration/*.test.ts",
     "dev": "node --env-file-if-exists=.env --import tsx src/server.ts"
   },
   "keywords": [],
