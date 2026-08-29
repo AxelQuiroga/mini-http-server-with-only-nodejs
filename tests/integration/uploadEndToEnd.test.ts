@@ -69,6 +69,10 @@ import type {
     VideoMediaInfo
 } from '../../src/domain/types/media.types.js';
 
+import type {
+    VideoMetadata
+} from '../../src/domain/types/video.types.js';
+
 import type { Pool } from 'pg';
 
 import {
@@ -120,11 +124,17 @@ function sleep(ms: number): Promise<void> {
 class E2EMediaRepository
     implements MediaRepository {
 
+    // Contadores: permiten DEMOSTRAR que el read path no ejecuta
+    // procesamiento multimedia (los tests los comparan antes/después).
+    getVideoInfoCalls = 0;
+    getVideoThumbnailCalls = 0;
+
     constructor(
         private readonly ffprobeDelayMs = 0
     ) {}
 
     async getVideoInfo(): Promise<VideoMediaInfo> {
+        this.getVideoInfoCalls += 1;
         if (this.ffprobeDelayMs > 0) {
             await sleep(this.ffprobeDelayMs);
         }
@@ -135,6 +145,7 @@ class E2EMediaRepository
         _absoluteVideoPath: string,
         thumbnailPath: string
     ): Promise<void> {
+        this.getVideoThumbnailCalls += 1;
         await mkdir(dirname(thumbnailPath), { recursive: true });
         await writeFile(thumbnailPath, 'E2E-JPEG');
     }
@@ -175,7 +186,7 @@ async function makeE2EContext(
         new UploadService(fileRepo, mediaRepo, pgRepo);
 
     const videoService =
-        new VideoService(fileRepo, mediaRepo);
+        new VideoService(pgRepo);
 
     const catalogSyncJob =
         new CatalogSyncJob(
@@ -490,6 +501,149 @@ test(
                 + "WHERE relative_path = 'caso-a.mp4'"
             )).rows[0]!.n,
             0
+        );
+    }
+);
+
+// ─── Read path: GET /api/videos desde PostgreSQL (cierre del Paso 3) ────────
+
+test(
+    'E2E read path: GET /api/videos lee el catálogo de PostgreSQL con la '
+    + 'metadata EXACTA del upload y NO ejecuta ffprobe ni ffmpeg (contadores '
+    + 'del media intactos); el thumbnail se sirve del disco sin regenerarse',
+    { skip },
+    async (t) => {
+        await truncateVideos(pool);
+
+        const media = new E2EMediaRepository();
+        const { server, tempRoot } =
+            await makeE2EContext(media);
+
+        t.after(() => {
+            server.server.close();
+        });
+
+        const body =
+            new Uint8Array(Buffer.from('bytes-del-read'));
+
+        const postRes = await fetch(
+            `http://127.0.0.1:${server.port}/api/upload?filename=e2e.mp4`,
+            { method: 'POST', body }
+        );
+        assert.equal(postRes.status, 200);
+
+        // Línea base: el write path procesó el contenido UNA sola vez
+        assert.equal(media.getVideoInfoCalls, 1);
+        assert.equal(media.getVideoThumbnailCalls, 1);
+
+        // Invariante 1+4: el catálogo del GET viene de PostgreSQL con el
+        // shape HTTP exacto que consume el frontend (api.js / ui.js).
+        const getRes = await fetch(
+            `http://127.0.0.1:${server.port}/api/videos`
+        );
+        assert.equal(getRes.status, 200);
+        const payload = await getRes.json() as {
+            videos: VideoMetadata[];
+        };
+        assert.equal(payload.videos.length, 1);
+
+        const id =
+            Buffer.from('e2e.mp4').toString('base64url');
+        assert.deepEqual(payload.videos[0], {
+            id,
+            title: 'E2e',
+            fileName: 'e2e.mp4',
+            size: 'bytes-del-read'.length,
+            extension: '.mp4',
+            streamUrl: '/videos/e2e.mp4',
+            mediaInfo: E2E_MEDIA_INFO,
+            thumbnailUrl: `/thumbnails/${id}.jpg`
+        });
+
+        // Invariante 2+3: la metadata devuelta es la PERSISTIDA y el GET
+        // no volvió a inspeccionar el contenido: contadores intactos.
+        assert.deepEqual(
+            payload.videos[0]!.mediaInfo,
+            E2E_MEDIA_INFO
+        );
+        assert.equal(
+            media.getVideoInfoCalls,
+            1,
+            'el read NO debe ejecutar ffprobe'
+        );
+        assert.equal(
+            media.getVideoThumbnailCalls,
+            1,
+            'el read NO debe ejecutar ffmpeg'
+        );
+
+        // Invariante 7: el thumbnail físico existe (del upload) y se sirve
+        // por StaticFileController SIN que el read lo haya regenerado.
+        const thumbRes = await fetch(
+            `http://127.0.0.1:${server.port}/thumbnails/${id}.jpg`
+        );
+        assert.equal(thumbRes.status, 200);
+        assert.ok(
+            (await thumbRes.arrayBuffer()).byteLength > 0
+        );
+        assert.equal(
+            media.getVideoThumbnailCalls,
+            1,
+            'servir el thumbnail no cuenta como regeneración'
+        );
+
+        // Aclaración de alcance: /videos SÍ lee el filesystem (streaming
+        // del binario). Lo que NO toca el FS es el READ DEL CATÁLOGO.
+        const streamRes = await fetch(
+            `http://127.0.0.1:${server.port}/videos/e2e.mp4`
+        );
+        assert.equal(streamRes.status, 200);
+        const served = Buffer.from(
+            await streamRes.arrayBuffer()
+        );
+        assert.ok(
+            served.equals(Buffer.from('bytes-del-read'))
+        );
+    }
+);
+
+test(
+    'E2E read path: orden determinístico del catálogo (created_at DESC, '
+    + 'el service no lo altera)',
+    { skip },
+    async (t) => {
+        await truncateVideos(pool);
+
+        const { server } =
+            await makeE2EContext(new E2EMediaRepository());
+
+        t.after(() => {
+            server.server.close();
+        });
+
+        await fetch(
+            `http://127.0.0.1:${server.port}/api/upload?filename=viejo.mp4`,
+            { method: 'POST', body: new Uint8Array(Buffer.from('a')) }
+        );
+        await sleep(60);
+        await fetch(
+            `http://127.0.0.1:${server.port}/api/upload?filename=nuevo.mp4`,
+            { method: 'POST', body: new Uint8Array(Buffer.from('b')) }
+        );
+
+        const getRes = await fetch(
+            `http://127.0.0.1:${server.port}/api/videos`
+        );
+        assert.equal(getRes.status, 200);
+        const payload = await getRes.json() as {
+            videos: VideoMetadata[];
+        };
+
+        assert.deepEqual(
+            payload.videos.map((v) => v.fileName),
+            ['nuevo.mp4', 'viejo.mp4'],
+            'el más nuevo (mayor created_at) primero; el service conserva '
+            + 'el orden que el repository ya determinó'
         );
     }
 );

@@ -86,10 +86,10 @@ export async function buildContainer(): Promise<Container> {
     // mismo momento de ejecución que el sync, responsabilidad separada)
     await fileRepository.cleanOrphanUploads();
 
-    // 5. Services — inyección por constructor
+    // 5. Services — inyección por constructor.
+    //    VideoService: read path puro (PostgreSQL), sin media ni filesystem.
     const videoService = new VideoService(
-        fileRepository,
-        mediaRepository
+        videoRepository
     );
 
     const uploadService = new UploadService(

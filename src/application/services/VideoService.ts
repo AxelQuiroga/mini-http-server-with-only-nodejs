@@ -1,105 +1,59 @@
-import { readdirSync } from 'node:fs';
-import { join, extname, parse, relative } from 'node:path';
-import type { FileRepository } from '../../domain/repositories/FileRepository.js';
-import type { MediaRepository } from '../../domain/repositories/MediaRepository.js';
+import { parse } from 'node:path';
+
+import type { VideoRepository } from '../../domain/repositories/VideoRepository.js';
+import type { StoredVideoMetadata } from '../../domain/types/catalog.types.js';
 import type { VideoMetadata } from '../../domain/types/video.types.js';
 
+/**
+ * Proyección del catálogo para el frontend (GET /api/videos).
+ *
+ * READ PATH = SELECT puro: el catálogo se lee de PostgreSQL (VideoRepository),
+ * la fuente de verdad de la metadata calculada UNA sola vez durante el write
+ * path (upload/sync). Este servicio NO ejecuta ffprobe, NO ejecuta ffmpeg y
+ * NO escanea public/videos: mapea filas persistidas al contrato HTTP
+ * (VideoMetadata). El costo de procesar contenido aparece cuando hay
+ * contenido NUEVO, jamás por consulta.
+ *
+ * La convergencia fila ↔ archivo físico la garantiza CatalogSyncJob en el
+ * bootstrap (filas ∖ archivos → delete; archivos ∖ filas → save).
+ */
 export class VideoService {
-  private readonly ALLOWED_EXTENSIONS = new Set(['.mp4', '.mkv', '.webm', '.mov', '.avi']);
-  private readonly absoluteVideosFolderPath: string;
 
-  constructor(
-    private readonly fileRepository: FileRepository,
-    private readonly mediaRepository: MediaRepository,
-    private readonly videosFolder: string = 'public/videos'
-) {
-    this.absoluteVideosFolderPath = join(process.cwd(), this.videosFolder);
-  }
+    constructor(
+        private readonly videoRepository: VideoRepository
+    ) {}
 
-  /**
-   * Obtiene todos los videos buscando recursivamente.
-   * Ahora es ASÍNCRONO porque ffprobe ejecuta un proceso asíncrono.
-   */
-  async getAllVideos(): Promise<VideoMetadata[]> {
-    const videoRelativePaths = this.scanDirectoryRecursively(this.absoluteVideosFolderPath);
-
-    // Mapeamos de forma asíncrona todos los archivos
-    const metadataPromises = videoRelativePaths.map((relativePath) =>
-      this.mapToVideoMetadata(relativePath)
-    );
-
-    return Promise.all(metadataPromises);
-  }
-
-  private scanDirectoryRecursively(currentDirPath: string): string[] {
-    let results: string[] = [];
-
-    try {
-      const entries = readdirSync(currentDirPath, { withFileTypes: true });
-
-      for (const entry of entries) {
-        const fullEntryPath = join(currentDirPath, entry.name);
-
-        if (entry.isDirectory()) {
-          const subDirFiles = this.scanDirectoryRecursively(fullEntryPath);
-          results = results.concat(subDirFiles);
-        } else if (entry.isFile()) {
-          const ext = extname(entry.name).toLowerCase();
-
-          if (this.ALLOWED_EXTENSIONS.has(ext)) {
-            const relativeToVideosFolder = relative(this.absoluteVideosFolderPath, fullEntryPath);
-            results.push(relativeToVideosFolder);
-          }
-        }
-      }
-    } catch (error: unknown) {
-      console.warn(`[VideoService] No se pudo leer el directorio: ${currentDirPath}`);
+    async getAllVideos(): Promise<VideoMetadata[]> {
+        const rows = await this.videoRepository.listAll();
+        return rows.map((row) =>
+            this.mapRowToVideoMetadata(row)
+        );
     }
 
-    return results;
-  }
+    private mapRowToVideoMetadata(
+        row: StoredVideoMetadata
+    ): VideoMetadata {
+        const parsedName = parse(row.relativePath).name;
 
-  /**
-   * Ahora es ASÍNCRO para consultar a MediaService por la duración, resolución, etc.
-   */
-  private async mapToVideoMetadata(relativeVideoPath: string): Promise<VideoMetadata> {
-    const normalizedRelativePath = relativeVideoPath.replace(/\\/g, '/');
-    const fileServicePath = join('videos', normalizedRelativePath);
-
-    // Metadata básica de disco (size, extension)
-    const { size, extension } = this.fileRepository.getFileMetadata(fileServicePath);
-    const fileInfo = parse(normalizedRelativePath);
-
-    // Ruta absoluta que necesita ffprobe para inspeccionar
-    const absoluteFilePath = join(this.absoluteVideosFolderPath, normalizedRelativePath);
-
-    // 3. Inspección con ffprobe mediante MediaService
-    const mediaInfo = await this.mediaRepository.getVideoInfo(absoluteFilePath);
-
-    const id = Buffer.from(normalizedRelativePath).toString('base64url');
-    const thumbnailPath = join(process.cwd(), 'public', 'thumbnails', `${id}.jpg`);
-    let thumbnailUrl: string | undefined;
-    try {
-      await this.mediaRepository.getVideoThumbnail(absoluteFilePath, thumbnailPath);
-      thumbnailUrl = '/thumbnails/' + id + '.jpg';
-    } catch (error: unknown) {
-      console.warn(`[VideoService] No se pudo obtener la thumbnail de: ${absoluteFilePath}`);
+        return {
+            id: row.id,
+            title: this.formatTitle(parsedName),
+            fileName: row.fileName,
+            size: row.size,
+            extension: row.extension,
+            streamUrl: `/videos/${row.relativePath}`,
+            // La URL se CONSTRUYE con el id convergente (base64url del
+            // relativePath, mismo algoritmo en upload/sync/read). El read
+            // no verifica ni genera el thumbnail: si el .jpg falta, es una
+            // inconsistencia que CatalogSyncJob reconcilia en el bootstrap.
+            mediaInfo: row.mediaInfo,
+            thumbnailUrl: `/thumbnails/${row.id}.jpg`
+        };
     }
-    return {
-  id,
-  title: this.formatTitle(fileInfo.name),
-  fileName: fileInfo.base,
-  size,
-  extension,
-  streamUrl: `/videos/${normalizedRelativePath}`,
-  ...(thumbnailUrl ? { thumbnailUrl } : {}),
-  mediaInfo 
-};
-  }
 
-  private formatTitle(rawName: string): string {
-    return rawName
-      .replace(/[-_]/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  }
+    private formatTitle(rawName: string): string {
+        return rawName
+            .replace(/[-_]/g, ' ')
+            .replace(/\b\w/g, (char) => char.toUpperCase());
+    }
 }
